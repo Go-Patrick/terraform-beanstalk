@@ -11,7 +11,7 @@ resource "aws_elastic_beanstalk_application" "test_beanstalk" {
 resource "aws_elastic_beanstalk_environment" "test_beanstalk_env" {
   name                = "${terraform.workspace}-beanstalk-env"
   application         = aws_elastic_beanstalk_application.test_beanstalk.name
-  solution_stack_name = "64bit Amazon Linux 2023 v4.1.0 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2023 v4.0.0 running ECS" //"64bit Amazon Linux 2023 v4.1.0 running Docker"
 
   // Set up launch instance
   setting {
@@ -54,7 +54,7 @@ resource "aws_elastic_beanstalk_environment" "test_beanstalk_env" {
   setting {
     namespace = "aws:autoscaling:asg"
     name      = "Maxsize"
-    value     = "2"
+    value     = terraform.workspace == "staging" ? 3 : 1
   }
 
   setting {
@@ -132,57 +132,94 @@ resource "aws_elastic_beanstalk_environment" "test_beanstalk_env" {
   }
 
   # Database set up
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name = "DBEngine"
+  #   value = "postgres"
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name = "DBInstanceClass"
+  #   value = "db.t3.micro"
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name      = "DBEngineVersion"
+  #   value     = "14.5"
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name      = "DBAllocatedStorage"
+  #   value     = "10"
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name      = "DBDeletionPolicy"
+  #   value     = "Delete"
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name      = "HasCoupledDatabase"
+  #   value     = "true"
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name = "DBPassword"
+  #   value = var.DB_PASSWORD
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name = "DBUser"
+  #   value = var.DB_USERNAME
+  # }
+
+  # setting {
+  #   namespace = "aws:rds:dbinstance"
+  #   name      = "MultiAZDatabase"
+  #   value     = "true"
+  # }
+
+  // Set up environment variable
   setting {
-    namespace = "aws:rds:dbinstance"
-    name = "DBEngine"
-    value = "postgres"
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "RAILS_ENV"
+    value = "production"
   }
 
   setting {
-    namespace = "aws:rds:dbinstance"
-    name = "DBInstanceClass"
-    value = "db.t3.micro"
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "REDIS_SERVER"
+    value = var.REDIS_SERVER
   }
 
   setting {
-    namespace = "aws:rds:dbinstance"
-    name      = "DBEngineVersion"
-    value     = "14.5"
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "POSTGRES_HOST"
+    value = var.DB_NAME
   }
 
   setting {
-    namespace = "aws:rds:dbinstance"
-    name      = "DBAllocatedStorage"
-    value     = "10"
-  }
-
-  setting {
-    namespace = "aws:rds:dbinstance"
-    name      = "DBDeletionPolicy"
-    value     = "Delete"
-  }
-
-  setting {
-    namespace = "aws:rds:dbinstance"
-    name      = "HasCoupledDatabase"
-    value     = "true"
-  }
-
-  setting {
-    namespace = "aws:rds:dbinstance"
-    name = "DBPassword"
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "POSTGRES_PASSWORD"
     value = var.DB_PASSWORD
   }
 
   setting {
-    namespace = "aws:rds:dbinstance"
-    name = "DBUser"
-    value = var.DB_USERNAME
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "POSTGRES_DATABASE"
+    value = var.DB_NAME
   }
 
   setting {
-    namespace = "aws:rds:dbinstance"
-    name      = "MultiAZDatabase"
-    value     = "true"
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "POSTGRES_USERNAME"
+    value = var.DB_USERNAME
   }
 }
